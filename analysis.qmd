@@ -27,6 +27,48 @@ income_tx <- get_acs(
 ```
 
 ```{r}
+#| message: false
+edu_state <- get_acs(
+  geography = "state",
+  variables = c("B15003_022", "B15003_023", "B15003_024", "B15003_025"),
+  summary_var = "B15003_001",
+  year = 2020
+)
+```
+
+```{r}
+edu_state_summary <- edu_state |>
+  group_by(GEOID, NAME) |>
+  summarise(
+    bachelors_plus = sum(estimate, na.rm = TRUE),
+    total = first(summary_est),
+    percent_bachelors_plus = 100 * bachelors_plus / total,
+    .groups = "drop"
+  ) |>
+  arrange(desc(percent_bachelors_plus))
+
+ggplot(edu_state_summary, aes(
+  x = percent_bachelors_plus,
+  y = reorder(NAME, percent_bachelors_plus)
+)) +
+  geom_col(fill = "#365C8D") +
+  scale_x_continuous(labels = scales::label_percent(scale = 1)) +
+  labs(
+    title = "Adults with a Bachelor's Degree or Higher by State",
+    x = "Adults with a bachelor's degree or higher (%)",
+    y = NULL,
+    caption = "Source: U.S. Census Bureau, 2016-2020 American Community Survey 5-year estimates."
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.caption = element_text(hjust = 0),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```
+
+```{r}
 ggplot(income_tx) +
   geom_sf(aes(fill = estimate), color = NA) +
   scale_fill_viridis_c(name = "Median household income (USD)",
