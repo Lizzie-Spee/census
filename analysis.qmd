@@ -1,4 +1,45 @@
 ---
 title: "Analyzing US Census Data"
 author: "Lizzie"
+execute:
+  echo: false
 ---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(tidycensus)
+library(sf)
+```
+
+This stores the key in your `.Renviron` file so every future R session finds it automatically. The key is stored on this machine only—on a new machine, install it again with `census_api_key("KEY", install = TRUE, overwrite = TRUE)`. In other words, if you install the key in a Codespace, it disappears when the Codespace does. You will need to do it again when you start a new Codespace, at least until you learn how to create a dotfiles repo.
+
+```{r}
+#| message: false
+#| cache: true
+income_tx <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "TX",
+  year = 2020,
+  geometry = TRUE
+)
+```
+
+```{r}
+ggplot(income_tx) +
+  geom_sf(aes(fill = estimate), color = NA) +
+  scale_fill_viridis_c(name = "Median household income (USD)",
+                       labels = scales::label_dollar()) +
+  coord_sf(datum = NA) +
+  labs(
+    title = "2020 Median Household Income by Texas County",
+    caption = "Source: U.S. Census Bureau, 2016-2020 American Community Survey 5-year estimates."
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    plot.caption = element_text(hjust = 0)
+  )
+```
